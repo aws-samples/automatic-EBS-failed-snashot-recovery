@@ -3,9 +3,10 @@ EBS Snapshot creation might failed, even when they are managed by Amazon Data Li
 
 This sample performs a recovery operations on Amazon EC2 snapshots by defining a Lambda function that will be triggered by SQS messages where each message contains details about a snapshot creation failure.
 In particular, the lambda is *applied to only snapshots tagged with specific tag* **source_tag_Key=source_tag_Value** which has to be *defined in the environment variables*. Recovery snapshot are marked by the lambda by appending the tag  **snapshot_recovery_tag_Key=snapshot_recovery_tag_Value** which has to be *defined in the environment variables*
-**Please note that this is a sample to review and to modify according to your needs**.
-In addition, evaluate to periodically review and clean-up the snapshots create by this solution which are actually tagged properly, see  *snapshot_recovery_tag_Key=snapshot_recovery_tag_Value*.
 
+**Please note that this is a sample to review and to modify according to your needs**.
+
+**Important** Periodically review and clean-up the snapshots created which are tagged, see  *snapshot_recovery_tag_Key=snapshot_recovery_tag_Value*, to avoid unexpected charges on your bill.
 
 ## How does it work?
 Whenever a EBS Snapshot creation is an asynchronous process with [**createSnapshot**](https://docs.aws.amazon.com/ebs/latest/userguide/ebs-cloud-watch-events.html#create-snapshot-complete) event which results either **succeeded** or **failed**. Therefore, an **EventBridge Rule** can be created to send such events to an SQS queue to trigger a Lambda that will run another EBS Snapshot creation, trying to recovery the source event resulted from a temporary problem. The smart mechanism is that in case the Lambda fails, a creteSnapshot failed is generated and the corresponding EventBridge rule will run, enqueing the event to the SQS. The python code includes a **tagcounter** to limit the maximum number of attempts to five, decreasing it every time a previously recovery snapshot attempt failed, sending a notification via SNS when the **tagcounter** reaches zero, i.e., when the lambda exhausted all the attempts we set.
@@ -132,11 +133,16 @@ In the **Select target(s)** window
 press *Next* and in *Select target(s)* select **SQS queue** and under *Queue* select **createSnaphot-failed-SQS** which has been creatd in the previous step.
 Then, press *Next* and again *Next*, review the rule and create it.
 
-#### Step 6. Test it
+#### Step 6. Test Wisely
 
-The solution can be tested by changing **"result": ["succeeded"]** within the **Event pattern** and manually create a snapshot from a volume.
-Then, you have to ***immediately restore** the **"result": ["failed"]** in the **Event pattern** to ***avoid a loop*** of EBS Snapshots created by the lambda.
-Once you will review the CloudWatch logs and you will find the resulting EBS Snapshot, feel free to remove the resulting EBS Snapshot(s).
+Read the whole paragraph please.
+- The solution can be tested by changing **"result": ["succeeded"]** within the **Event pattern** and manually create a snapshot from a volume.
+- **We recommend to immediately restore the "result": ["failed"]** in the **Event pattern** to **avoid a loop of EBS Snapshots created by the lambda**.
+- Once you will review the CloudWatch logs and you will find the resulting EBS Snapshot, feel free to remove the resulting EBS Snapshot(s).
+
+#### Considerations
+
+This solution tries to recover a failed EBS snapshot.
 
 ## Security
 
