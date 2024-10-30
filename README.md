@@ -76,7 +76,7 @@ Replace **AWSREGION** and **AWSACCOUNT** in the policy below, with the correspon
 }
 ```
 
-Then, create an IAM role **recovery-createSnapshot-role** for tje service AWS Lambda, attaching the policy **recovery-createSnapshot-policy** to it.
+Then, create an IAM role **recovery-createSnapshot-role** for the service AWS Lambda, attaching the policy **recovery-createSnapshot-policy** to it.
 
 #### Step 2. Create a SNS Topic to delivery communiction when the maximum number of attempts is exhausted
 Create a topic with name **recovery-createSnapshot-sns-topic**, create the corresponding subscription and confirm it.
@@ -86,7 +86,7 @@ Create a Lambda with
 - **Function name:** *recovery-createSnapshot-lambda*
 - **Runtime:** *Python 3.12*
 
-In the wizard, open *Change default execution role* to *Use an existing role" setting the IAM role **recovery-createSnapshot-role**.
+In the wizard, open *Change default execution role* to *Use an existing role* setting the IAM role **recovery-createSnapshot-role**.
 
 Once the function has been created, copy the code available in **recovery-createSnashot-failed.py** and paste it in the lambda *Code* tab, then press *Deploy* to commit the changes.
 
@@ -95,7 +95,7 @@ Then, move into the Lambda *configuration* tab to set **Timeout to 3 minutes** a
 - **source_tag_Value**  the tag value the lambda will look for on the failed snapshot to proceed in the recovery mechanism, e.g., *LambdaRecovery*
 - **snapshot_recovery_tag_Key** the tag key appened by lambda to mark the snapshot it has generated, e.g., *Retention*
 - **snapshot_recovery_tag_Value** the tag value appened by lambda to mark the snapshot it has generated, e.g., *30*
-- **snapshot_recovery_max_retries_sns** with the SNS topic ARN, e.g., *arn:aws:sns:AWSREGION:AWSACCOUNT:recovery-createSnapshot-sns-topic*
+- **snapshot_recovery_max_retries_sns** with the SNS topic ARN, e.g., arn:aws:sns:AWSREGION:AWSACCOUNT:recovery-createSnapshot-sns-topic
 
 Therefore, the lambda function scope is limited to those EBS snapshot with **source_tag_Key=source_tag_Value**, otherwise it will exit.
 The lambda marks the recovered snapshot by appending **snapshot_recovery_tag_Key=snapshot_recovery_tag_Value**.
@@ -127,7 +127,7 @@ Press *Next*. Now, scroll down to **Event pattern** and press **Edit Pattern** p
 Click on **{}Prettify** and click *Next*.
 
 In the **Select target(s)** window 
-- *Target types* select **AWS Service**, *Select target(s)* select **SQS queue**, and under *Queue* select **createSnaphot-failed-SQS** which has been creatd in the previous step.
+- *Target types* select **AWS Service**, *Select target(s)* select **SQS queue**, and under *Queue* select **createSnaphot-failed-SQS** which has been created in the previous step.
 Then, press *Next* and again *Next*, review the rule and create it.
 
 #### Step 6. Test Wisely
